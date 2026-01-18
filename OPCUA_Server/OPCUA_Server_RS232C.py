@@ -1,12 +1,12 @@
 import asyncio
-import json         # JSON 문자열을 딕셔너리로 변환하기 위해 추가
+import json         
 from asyncua import Server, ua
-from datetime import datetime # datetime 모듈을 import 합니다.
+from datetime import datetime
 import numpy as np
 import base64
 import cv2
 import logging
-import time # time.sleep 사용을 위해 import
+import time 
 import sys
 import os
 
@@ -115,7 +115,7 @@ class ServerMethods:
         global image_data_var
         self.read_send_arm_img_node = await synchrobots_IMG.add_variable(
             ua.NodeId("read_send_arm_img", self.idx, node_id_type), "read_send_arm_img", b'', datatype=ua.NodeId(ua.ObjectIds.ByteString))
-        image_data_var = self.read_send_arm_img_node # 전역 변수 설정
+        image_data_var = self.read_send_arm_img_node
 
         return {
             "AMR": synchrobots_AMR,
@@ -804,7 +804,6 @@ class ServerMethods:
 # Helper 함수: Method Arguments 정의 (가독성 유지를 위해 변경 없음)
 # -----------------------------------------------------
 def define_amr_001_arguments():
-    # ... (함수 내용 유지) ...
     # Input Argument: JSON 문자열 (String 타입으로 전송)
     input_arg = ua.Argument()
     input_arg.Name = "json_command_str"
@@ -829,7 +828,6 @@ def define_amr_001_arguments():
     return [input_arg], [output_arg_1, output_arg_2]
 
 def define_amr_002_arguments():
-    # ... (함수 내용 유지) ...
     input_arg = ua.Argument()
     input_arg.Name = "json_object_info_str"
     input_arg.DataType = ua.NodeId(ua.ObjectIds.String)
@@ -851,7 +849,6 @@ def define_amr_002_arguments():
     return [input_arg], [output_arg_1, output_arg_2]
 
 def define_amr_003_arguments():
-    # ... (함수 내용 유지) ...
     input_arg = ua.Argument()
     input_arg.Name = "json_mission_state_str"
     input_arg.DataType = ua.NodeId(ua.ObjectIds.String)
@@ -873,7 +870,6 @@ def define_amr_003_arguments():
     return [input_arg], [output_arg_1, output_arg_2]
 
 def define_plc_001_arguments():
-    # ... (함수 내용 유지) ...
     input_arg = ua.Argument()
     input_arg.Name = "conveyorSensor_check"
     input_arg.DataType = ua.NodeId(ua.ObjectIds.Boolean)
@@ -895,7 +891,6 @@ def define_plc_001_arguments():
     return [input_arg], [output_arg_1, output_arg_2]
 
 def define_plc_002_arguments():
-    # ... (함수 내용 유지) ...
     input_arg = ua.Argument()
     input_arg.Name = "json_anomaly_str"
     input_arg.DataType = ua.NodeId(ua.ObjectIds.String)
@@ -917,7 +912,6 @@ def define_plc_002_arguments():
     return [input_arg], [output_arg_1, output_arg_2]
 
 def define_plc_003_arguments():
-    # ... (함수 내용 유지) ...
     input_arg = ua.Argument()
     input_arg.Name = "robotArmSensor_check"
     input_arg.DataType = ua.NodeId(ua.ObjectIds.Boolean)
@@ -939,7 +933,6 @@ def define_plc_003_arguments():
     return [input_arg], [output_arg_1, output_arg_2]
 
 def define_plc_004_arguments():
-    # ... (함수 내용 유지) ...
     input_arg = ua.Argument()
     input_arg.Name = "json_state_str"
     input_arg.DataType = ua.NodeId(ua.ObjectIds.String)
@@ -961,7 +954,6 @@ def define_plc_004_arguments():
     return [input_arg], [output_arg_1, output_arg_2]
 
 def define_arm_001_arguments():
-    # ... (함수 내용 유지) ...
     input_arg = ua.Argument()
     input_arg.Name = "json_img_data_str"
     input_arg.DataType = ua.NodeId(ua.ObjectIds.String)
@@ -980,7 +972,6 @@ def define_arm_001_arguments():
     return [input_arg], [output_arg_1, output_arg_2]
 
 def define_arm_002_arguments():
-    # ... (함수 내용 유지) ...
     input_arg = ua.Argument()
     input_arg.Name = "json_img_data_str"
     input_arg.DataType = ua.NodeId(ua.ObjectIds.String)
@@ -999,7 +990,6 @@ def define_arm_002_arguments():
     return [input_arg], [output_arg_1, output_arg_2]
 
 def define_arm_003_arguments():
-    # ... (함수 내용 유지) ...
     input_arg = ua.Argument()
     input_arg.Name = "json_img_data_str"
     input_arg.DataType = ua.NodeId(ua.ObjectIds.String)
@@ -1018,7 +1008,6 @@ def define_arm_003_arguments():
     return [input_arg], [output_arg_1, output_arg_2]
 
 def define_arm_004_arguments():
-    # ... (함수 내용 유지) ...
     input_arg = ua.Argument()
     input_arg.Name = "json_img_data_str"
     input_arg.DataType = ua.NodeId(ua.ObjectIds.String)
@@ -1037,7 +1026,6 @@ def define_arm_004_arguments():
     return [input_arg], [output_arg_1, output_arg_2]
 
 def define_img_001_arguments():
-    # ... (함수 내용 유지) ...
     input_arg = ua.Argument()
     input_arg.Name = "image_bytes"
     input_arg.DataType = ua.NodeId(ua.ObjectIds.ByteString)
@@ -1060,7 +1048,6 @@ async def main():
     print(f"[{current_time}] [MAIN] 🚀 main() 함수 실행 시작")
 
     server = Server()
-    # 🚨 수정: 0.0.0.0을 사용하여 모든 네트워크 인터페이스 허용 (가장 확실한 방법)
     server_ip = "opc.tcp://172.30.1.61:4840/freeopcua/server/"
     
     print(f"[{current_time}] [OPCUA] 서버 초기화 진행...")
@@ -1150,16 +1137,15 @@ async def main():
         while True:
             await asyncio.sleep(1)
             
-            # 🚨 Watchdog: 10초 이상 비동기 루프가 응답 없으면 강제 에러 발생
+            # Watchdog: 10초 이상 비동기 루프가 응답 없으면 강제 에러 발생
             if time.time() - last_heartbeat > 10:
                 raise Exception("서버 응답 지연 감지 (Watchdog Timeout)")
             
             last_heartbeat = time.time()
 
     except asyncio.CancelledError:
-        # 🚨 이미지에 뜬 'CancelledError' 발생 시 이 블록이 실행됩니다.
         print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [SYSTEM] 비동기 작업 취소 감지 (CancelledError).")
-        raise # 이 raise가 하단의 if __name__ == "__main__"으로 에러를 전달합니다.
+        raise 
     except Exception as e:
         print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [OPCUA][ERROR] 서버 장애 발생: {e}")
         raise e
@@ -1182,7 +1168,7 @@ if __name__ == "__main__":
         except (Exception, asyncio.CancelledError) as e:
             curr = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             print("\n" + "=" * 70)
-            # 🚨 빨간색 배경으로 에러 시각화
+            # 빨간색 배경으로 에러 시각화
             print(f"\033[41m\033[37m[{curr}] [CRITICAL] 서버 다운/지연 감지! 에러: {e} \033[0m")
             print(f"\033[93m[{curr}] [SYSTEM] {RESTART_DELAY_SECONDS}초 대기 후 자동으로 서버를 재시작합니다...\033[0m")
             print("=" * 70 + "\n")

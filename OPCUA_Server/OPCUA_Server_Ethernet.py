@@ -1,10 +1,10 @@
 import asyncio
-import json         # JSON 문자열을 딕셔너리로 변환하기 위해 추가
+import json
 from asyncua import Server, ua
 from pymodbus.server import StartTcpServer
 from pymodbus.datastore import ModbusSlaveContext, ModbusServerContext, ModbusSequentialDataBlock
 import threading
-from datetime import datetime # datetime 모듈을 import 합니다.
+from datetime import datetime
 import numpy as np
 import base64
 import cv2
@@ -33,8 +33,6 @@ image_data_var = None
 
 # ------------------------------------------------------------------------------------- #
 
-# OPC UA 메소드 구현을 위한 비동기 클래스 정의
-# OPC UA 메소드는 서버의 내부 로직을 OPC UA를 통해 원격으로 호출하는 방식입니다.
 class ServerMethods:
     def __init__(self, server_instance, idx):
         self.server = server_instance
@@ -186,11 +184,9 @@ class ServerMethods:
     # AMR_001 인터페이스 로직 (Web PC -> AMR)
     # -----------------------------------------------------
     async def call_amr_go_move(self, parent_node, json_amr_go_move_data_str):
-        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S") # 💡 실시간 반영을 위해 함수 내 정의
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S") # 실시간 반영을 위해 함수 내 정의
         print(f"[{current_time}] [OPCUA][SERVER] amr_go_move 호출")
 
-        # --- 0) Variant / 문자열 껍데기 벗기기 ---
-        # ... (로직 생략)
         if isinstance(json_amr_go_move_data_str, ua.Variant):
             command_str = json_amr_go_move_data_str.Value
         else:
@@ -248,7 +244,6 @@ class ServerMethods:
         print(f"[{current_time}] [OPCUA][SERVER] call_amr_go_position 호출")
 
         # --- 0) Variant / 문자열 껍데기 벗기기 ---
-        # ... (로직 생략)
         if isinstance(json_amr_go_position_data_str, ua.Variant):
             position_str = json_amr_go_position_data_str.Value
         else:
@@ -316,7 +311,6 @@ class ServerMethods:
         print(f"[{current_time}] [OPCUA][SERVER] call_amr_mission_state called")
 
         # --- 0) Variant / 문자열 껍데기 벗기기 (Unwrapping Variant/String) ---
-        # ... (로직 생략)
         if isinstance(json_amr_mission_state_query_str, ua.Variant):
             query_str = json_amr_mission_state_query_str.Value
         else:
@@ -333,7 +327,6 @@ class ServerMethods:
         print(f"[{current_time}] [OPCUA][SERVER] json_query_str = {query_str!r}")
 
         # --- 1) 전처리 및 유효성 검사 ---
-        # ... (로직 생략)
         amr_success = False
         amr_message = ""
         
@@ -378,14 +371,12 @@ class ServerMethods:
         print(f"[{current_time}] [OPCUA][SERVER] call_conveyor_sensor_check called")
 
         # 1) Variant인지 확인하고 실제 값(Value)만 꺼내기
-        # ... (로직 생략)
         if isinstance(json_conveyor_sensor_check_data_str, ua.Variant):
             raw_value = json_conveyor_sensor_check_data_str.Value
         else:
             raw_value = json_conveyor_sensor_check_data_str
 
         # 2) PLC에서 0/1로 온다고 가정하고 bool로 변환
-        # ... (로직 생략)
         if isinstance(raw_value, (int, float)):
             is_sensor_ok = (raw_value != 0)
         else:
@@ -422,7 +413,6 @@ class ServerMethods:
         print(f"[{current_time}] [OPCUA][SERVER] call_ok_ng_value called")
 
         # --- 0) Variant / 문자열 껍데기 벗기기 ---
-        # ... (로직 생략)
         if isinstance(json_ok_ng_value_data_str, ua.Variant):
             command_str = json_ok_ng_value_data_str.Value
         else:
@@ -468,7 +458,6 @@ class ServerMethods:
                 modbus_value = 0
 
             # 3. Modbus Register에 값 기록
-            # ... (로직 생략)
             slave_id = 0x03
             modbus_context[slave_id].setValues(3, modbus_register_address, [modbus_value])
 
@@ -759,7 +748,6 @@ class ServerMethods:
         print(f"[{current_time}] [OPCUA][SERVER] call_arm_place_single called")
 
         # --- 0) Variant / 문자열 껍데기 벗기기 (Unwrapping Variant/String) ---
-        # ... (로직 생략)
         if isinstance(json_arm_place_single_data_str, ua.Variant):
             command_str = json_arm_place_single_data_str.Value
         else:
@@ -779,7 +767,6 @@ class ServerMethods:
         arm_message = ""
 
         try:
-            # (선택) JSON 형식 확인 (Optional: Check JSON format)
             # This checks if the string is a valid JSON before writing.
             json.loads(command_str)
 
@@ -826,7 +813,6 @@ class ServerMethods:
         print(f"[{current_time}] [OPCUA][SERVER] call_arm_place_completed called")
 
         # --- 0) Variant / 문자열 껍데기 벗기기 ---
-        # ... (로직 생략)
         if isinstance(json_arm_place_completed_data_str, ua.Variant):
             command_str = json_arm_place_completed_data_str.Value
         else:
@@ -1220,17 +1206,13 @@ async def main():
     server = Server()
 
     server_ip = "opc.tcp://172.30.1.61:0630/freeopcua/server/"
-    print(f"[{current_time}] [OPCUA] init server...")  # ✅ init 전
+    print(f"[{current_time}] [OPCUA] init server...")
     await server.init()
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"[{current_time}] [OPCUA] server.init() OK")  # ✅ init 후
+    print(f"[{current_time}] [OPCUA] server.init() OK")
 
     server.set_endpoint(server_ip)
     server.set_server_name("SynchroBots_OPCUA Server")
-
-    # server.set_security_policy([
-    #     ua.SecurityPolicyType.NoSecurity
-    # ])
 
     uri = "http://examples.freeopcua.github.io"
     idx = await server.register_namespace(uri)
@@ -1248,7 +1230,6 @@ async def main():
 
     # -----------------------------------------------------
     # 2. AMR_001 (amr_go_move) 메소드 등록  
-    # ... (Method 등록 로직 생략)
     # -----------------------------------------------------
     await synchrobots_objects["AMR"].add_method(
         ua.NodeId("write_amr_go_move", idx, node_id_type), 
@@ -1259,7 +1240,6 @@ async def main():
 
     # -----------------------------------------------------
     # 3. AMR_002 (amr_go_positions) 메소드 등록
-    # ... (Method 등록 로직 생략)
     # -----------------------------------------------------
     await synchrobots_objects["AMR"].add_method(
         ua.NodeId("write_amr_go_positions", idx, node_id_type), 
@@ -1269,7 +1249,6 @@ async def main():
 
     # -----------------------------------------------------
     # 4. AMR_003 (amr_mission_state) 메소드 등록
-    # ... (Method 등록 로직 생략)
     # -----------------------------------------------------
     await synchrobots_objects["AMR"].add_method(
         ua.NodeId("write_amr_mission_state", idx, node_id_type), 
@@ -1279,7 +1258,6 @@ async def main():
 
     # -----------------------------------------------------
     # 5. PLC_001 (set_conveyorSensor_check) 메소드 등록
-    # ... (Method 등록 로직 생략)
     # -----------------------------------------------------
     await synchrobots_objects["PLC"].add_method(
         ua.NodeId("write_conveyor_sensor_check", idx, node_id_type), 
@@ -1289,7 +1267,6 @@ async def main():
     
     # -----------------------------------------------------
     # 6. PLC_002 (OK_NG_Value) 메소드 등록
-    # ... (Method 등록 로직 생략)
     # -----------------------------------------------------
     await synchrobots_objects["PLC"].add_method(
         ua.NodeId("write_ok_ng_value", idx, node_id_type), 
@@ -1299,7 +1276,6 @@ async def main():
 
     # -----------------------------------------------------
     # 7. PLC_003 (set_robotArmSensor_check) 메소드 등록
-    # ... (Method 등록 로직 생략)
     # -----------------------------------------------------
     await synchrobots_objects["PLC"].add_method(
         ua.NodeId("write_robotarm_sensor_check", idx, node_id_type), 
@@ -1309,7 +1285,6 @@ async def main():
 
     # -----------------------------------------------------
     # 8. PLC_004 (Ready_State) 메소드 등록
-    # ... (Method 등록 로직 생략)
     # -----------------------------------------------------
     await synchrobots_objects["PLC"].add_method(
         ua.NodeId("write_ready_state", idx, node_id_type), 
@@ -1319,7 +1294,6 @@ async def main():
     
     # -----------------------------------------------------
     # 9. ARM_001 (arm_img) 메소드 등록
-    # ... (Method 등록 로직 생략)
     # -----------------------------------------------------
     await synchrobots_objects["ARM"].add_method(
         ua.NodeId("write_send_arm_json", idx, node_id_type), 
@@ -1329,7 +1303,6 @@ async def main():
     
     # -----------------------------------------------------
     # 9. ARM_002 (arm_go_move) 메소드 등록
-    # ... (Method 등록 로직 생략)
     # -----------------------------------------------------
     await synchrobots_objects["ARM"].add_method(
         ua.NodeId("write_arm_go_move", idx, node_id_type), 
@@ -1339,7 +1312,6 @@ async def main():
 
     # -----------------------------------------------------
     # 9. ARM_003 (arm_place_single) 메소드 등록
-    # ... (Method 등록 로직 생략)
     # -----------------------------------------------------
     await synchrobots_objects["ARM"].add_method(
         ua.NodeId("write_arm_place_single", idx, node_id_type), 
