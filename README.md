@@ -1,4 +1,4 @@
-### SynchroBots_PLC
+# SynchroBots_PLC
 
 ## 구성도
 시스템 아키텍처 및 통신 흐름도 / 설계
@@ -11,4 +11,4 @@
 - 프로젝트 각 파트 규격에 맞춘 하드웨어(AMR 적재함, 컨베이어 등) SOLIDWORKS 모델링
 
 ## 기술 스택
-Python, XG5000, Modbus RTU/TCP, OPCUA, SOLIDWORKSs
+Python, XG5000, Modbus RTU/TCP, OPCUA, SOLIDWORKS
