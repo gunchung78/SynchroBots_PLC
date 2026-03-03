@@ -20,11 +20,9 @@ logger = logging.getLogger('OPCUA_SERVER')
 node_id_type = ua.NodeIdType.String
 
 # --- Modbus TCP 설정 ---
-# PLC_002 결과를 저장할 Modbus Holding Register. 주소는 80 (인덱스 0)
 MODBUS_REGISTERS = {
-    80 : 0  # 0: NORMAL/CONTINUE, 1: ANOMALY/STOP
+    80 : 0
 }
-
 
 image_data_var = None
 
@@ -151,7 +149,6 @@ class ServerMethods:
         try:
             json.loads(command_str)
 
-            # ✅ 핵심: AMR이 읽어갈 변수 노드에 값 저장
             await self.read_amr_go_move_node.write_value(command_str)
 
             print(f"[{current_time}] [AMR] ✅ 노드 쓰기 성공. ID: {self.read_amr_go_move_node.nodeid.Identifier}")
@@ -203,7 +200,6 @@ class ServerMethods:
         try:
             json.loads(position_str)
 
-            # ✅ 핵심: AMR이 읽어갈 변수 노드에 값 저장
             await self.read_amr_go_positions_node.write_value(position_str)
 
             print(f"[{current_time}] [AMR] ✅ 노드 쓰기 성공. ID: {self.read_amr_go_positions_node.nodeid.Identifier}")
@@ -261,7 +257,6 @@ class ServerMethods:
         try:
             json.loads(query_str)
 
-            # ✅ 핵심: AMR이 읽어갈 변수 노드에 값 저장
             await self.read_amr_mission_state_node.write_value(query_str)
 
             print(f"[{current_time}] [AMR] ✅ 노드 쓰기 성공. ID: {self.read_amr_mission_state_node.nodeid.Identifier}")
@@ -290,34 +285,26 @@ class ServerMethods:
     # PLC_001 (PLC -> WEB)
     # -----------------------------------------------------
     async def call_conveyor_sensor_check(self, parent_node, json_conveyor_sensor_check_data_str):
-        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S") # 💡 실시간 반영
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(f"[{current_time}] [OPCUA][SERVER] call_conveyor_sensor_check called")
 
-        # 1) Variant인지 확인하고 실제 값(Value)만 꺼내기
-        # ... (로직 생략)
         if isinstance(json_conveyor_sensor_check_data_str, ua.Variant):
             raw_value = json_conveyor_sensor_check_data_str.Value
         else:
             raw_value = json_conveyor_sensor_check_data_str
 
-        # 2) PLC에서 0/1로 온다고 가정하고 bool로 변환
-        # ... (로직 생략)
         if isinstance(raw_value, (int, float)):
             is_sensor_ok = (raw_value != 0)
         else:
-            # 이미 bool이면 그대로 사용
             is_sensor_ok = bool(raw_value)
 
-        # 🔔 디버그 로그
         print(f"[{current_time}] [OPCUA][SERVER] conveyor_senser_check : {is_sensor_ok}")
 
-        # 3) 메시지 구성
         if is_sensor_ok:
             status_message = "Check OK"
         else:
             status_message = "Ready"
 
-        # 4) 서버 Variable 노드 갱신
         await self.read_converyor_sensor_check_node.set_value(status_message)
         print(f"[{current_time}] [OPCUA][SERVER] read_conveyor_sensor_check 노드 갱신: {status_message}")
         print(" - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ")
@@ -358,10 +345,8 @@ class ServerMethods:
         modbus_value = 0 # 0: OK(정상), 1: NG(불량)
 
         try:
-            # 1. JSON 형식 검사 및 파싱
             anomaly_data = json.loads(command_str)
             
-            # 2. Modbus 값 결정 로직 (OK/NG 문자열 기반으로 수정)
             if "Anomaly" in anomaly_data:
                 anomaly_status = anomaly_data["Anomaly"]
                 status_str_upper = str(anomaly_status).upper()
@@ -378,10 +363,8 @@ class ServerMethods:
                 status_message = "Anomaly key not found. Modbus Value: 0 (Default)"
                 modbus_value = 0
 
-            # 4. OPC UA Variable 노드 갱신
             await self.read_ok_ng_value_node.set_value(status_message)
             
-            # (로그 출력은 원래대로 유지하여 Modbus 값 확인)
             print(f"[{current_time}] [PLC] ✅ 노드 갱신 완료. ID: {self.read_ok_ng_value_node.nodeid.Identifier}")
             print(f"[{current_time}] [OPCUA][TASK] 3초 후 노드 자동 초기화 태스크 생성.")
             asyncio.create_task(self._reset_variable_after_delay(self.read_ok_ng_value_node, reset_value="Ready"))
@@ -418,31 +401,23 @@ class ServerMethods:
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S") # 💡 실시간 반영
         print(f"[{current_time}] [OPCUA][SERVER] call_robotarm_sensor_check called")
         
-        # 1) Variant인지 확인하고 실제 값(Value)만 꺼내기
-        # ... (로직 생략)
         if isinstance(json_robotarm_sensor_check_data_str, ua.Variant):
             raw_value = json_robotarm_sensor_check_data_str.Value
         else:
             raw_value = json_robotarm_sensor_check_data_str
 
-        # 2) PLC에서 0/1로 온다고 가정하고 bool로 변환
-        # ... (로직 생략)
         if isinstance(raw_value, (int, float)):
             is_sensor_ok = (raw_value != 0)
         else:
-            # 이미 bool이면 그대로 사용
             is_sensor_ok = bool(raw_value)
 
-        # 🔔 디버그 로그
         print(f"[{current_time}] [OPCUA][SERVER] robotarm_sensor_check : {is_sensor_ok}")
 
-        # 3) 메시지 구성
         if is_sensor_ok:
             status_message = "Check OK"
         else:
             status_message = "Ready"
 
-        # 4) 서버 Variable 노드 갱신
         await self.read_robotarm_sensor_check_node.set_value(status_message)
         print(f"[{current_time}] [OPCUA][SERVER] read_robotarm_sensor_check 노드 갱신: {status_message}")
         print(" - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ")
@@ -481,13 +456,11 @@ class ServerMethods:
         try:
             ready_data = json.loads(command_str)
             
-            # 'conveyor_move' 명령인지 확인
             if ready_data.get("state", "").upper() == "CONVEYOR_MOVE":
                 status_message = "CONVEYOR_MOVE Command Received"
             else:
                 status_message = f"Received state: {ready_data.get('state')}"
 
-            # ✅ 핵심: PLC Client가 구독할 변수 노드에 값 저장
             await self.read_ready_state_node.write_value(command_str)
 
             print(f"[{current_time}] [PLC] ✅ 노드 갱신 완료. ID: {self.read_ready_state_node.nodeid.Identifier}")
@@ -526,7 +499,6 @@ class ServerMethods:
         print(f"[{current_time}] [ARM] ➡️ 호출 수신: JSON + Base64 이미지 데이터")
 
         try:
-            # --- 1. Variant Unwrapping 및 String 변환 ---
             if isinstance(json_arm_img_data_str, ua.Variant):
                 raw_content = json_arm_img_data_str.Value
             else:
@@ -539,12 +511,10 @@ class ServerMethods:
             else:
                 content_to_write = str(raw_content)
 
-            # --- 2. JSON 파싱 및 데이터 처리 ---
             print(f"[{current_time}] [ARM] 🔍 수신 데이터 (앞 100자): {content_to_write[:100]}...")
 
             data = json.loads(content_to_write)
             
-            # 2-1. 이미지 데이터 처리 (Base64 디코딩 및 파일 저장)
             base64_img_str = data.get("img")
             if base64_img_str:
                 try:
@@ -556,9 +526,7 @@ class ServerMethods:
                     print(f"[{current_time}] [ARM] ✅ 이미지 복원 및 저장 완료: {output_filename}")
                 except Exception as e:
                     print(f"[{current_time}] [ARM][ERROR] ⚠️ 이미지 복원 중 오류: {e}")
-                    # 이미지 복원 오류는 로깅만 함
 
-            # 2-2. 미션 상태/비전 결과 데이터 로깅
             if 'status' in data:
                 print(f"[{current_time}] [ARM] ℹ️ 미션 상태 보고 (Status): {data['status']}")
             elif 'module_type' in data:
@@ -566,7 +534,6 @@ class ServerMethods:
             else:
                 print(f"[{current_time}] [ARM] ⚠️ 알 수 없는 데이터 구조 수신 (Keys: {list(data.keys())})")
             
-            # ✅ 핵심: ARM이 읽어갈 변수 노드에 원본 JSON 문자열 저장
             await self.read_send_arm_json_node.write_value(content_to_write)
 
             print(f"[{current_time}] [ARM] ✅ 노드 갱신 완료. ID: {self.read_send_arm_json_node.nodeid.Identifier}")
@@ -615,7 +582,6 @@ class ServerMethods:
         try:
             json.loads(command_str)
 
-            # ✅ 핵심 1: ARM이 읽어갈 변수 노드에 값 저장
             await self.read_arm_go_move_node.write_value(command_str)
 
             print(f"[{current_time}] [ARM] ✅ 노드 쓰기 성공. ID: {self.read_arm_go_move_node.nodeid.Identifier}")
@@ -667,7 +633,6 @@ class ServerMethods:
         try:
             json.loads(command_str)
 
-            # ✅ 핵심 1: ARM이 읽어갈 변수 노드에 값 저장
             await self.read_arm_place_single_node.write_value(command_str)
 
             print(f"[{current_time}] [ARM] ✅ 노드 쓰기 성공. ID: {self.read_arm_place_single_node.nodeid.Identifier}")
@@ -723,7 +688,6 @@ class ServerMethods:
         try:
             json.loads(command_str)
 
-            # ✅ 핵심 1: ARM이 읽어갈 변수 노드에 값 저장
             await self.read_arm_place_completed_node.write_value(command_str)
 
             print(f"[{current_time}] [ARM] ✅ 노드 쓰기 성공. ID: {self.read_arm_place_completed_node.nodeid.Identifier}")
@@ -752,10 +716,6 @@ class ServerMethods:
     # IMG_001 (ARM -> WEB)
     # -----------------------------------------------------
     async def call_send_arm_img(parent, image_bytes_variant):
-        """
-        로봇팔 클라이언트로부터 JPG 이미지 ByteString을 수신하고,
-        이를 OPC UA ByteString Variable에 핸들링 없이 저장합니다.
-        """
         global image_data_var
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
@@ -766,13 +726,12 @@ class ServerMethods:
         print(f"[{current_time}] [IMG] ➡️ 호출 수신: 이미지 바이트 데이터")
 
         try:            
-            # 1. Variant Unwrapping 및 타입 검사
             if not isinstance(image_bytes_variant, ua.Variant) or image_bytes_variant.VariantType != ua.VariantType.ByteString:
                 result_code = ua.Variant(2, ua.VariantType.Int32)
                 result_message = ua.Variant("Error: Input must be ByteString Variant.", ua.VariantType.String)
                 raise TypeError("Input must be ByteString Variant.")
 
-            img_bytes = image_bytes_variant.Value # 순수한 bytes 객체 추출
+            img_bytes = image_bytes_variant.Value
             
             if image_data_var is None:
                 result_code = ua.Variant(3, ua.VariantType.Int32)
@@ -784,16 +743,14 @@ class ServerMethods:
                 result_message = ua.Variant("Empty Image Data (ByteString)", ua.VariantType.String)
                 raise Exception("Empty Image Data")
 
-            # 3. 🚨 핵심 로직: OPC UA Variable에 ByteString 그대로 저장
             await image_data_var.write_value(img_bytes)
             
-            # 4. 로그 및 결과 반환
             print(f"[{current_time}] [IMG] ✅ 이미지 데이터 노드 쓰기 성공. 크기: {len(img_bytes)} bytes")
             result_message = ua.Variant("JPG data successfully written to OPC UA ByteString Variable", ua.VariantType.String)
 
         except Exception as e:
             print(f"[{current_time}] [IMG][ERROR] ❌ 처리 중 오류 발생: {e}", file=sys.stderr)
-            if result_code.Value == 0: # 위에 정의된 코드와 충돌 방지
+            if result_code.Value == 0:
                  result_code = ua.Variant(5, ua.VariantType.Int32)
             if not isinstance(result_message.Value, str) or 'Error' not in result_message.Value:
                 result_message = ua.Variant(f"Unknown Error: {e}", ua.VariantType.String)
@@ -804,21 +761,18 @@ class ServerMethods:
 # Helper 함수: Method Arguments 정의 (가독성 유지를 위해 변경 없음)
 # -----------------------------------------------------
 def define_amr_001_arguments():
-    # Input Argument: JSON 문자열 (String 타입으로 전송)
     input_arg = ua.Argument()
     input_arg.Name = "json_command_str"
     input_arg.DataType = ua.NodeId(ua.ObjectIds.String)
     input_arg.ValueRank = -1
     input_arg.Description = ua.LocalizedText("AMR 이동 명령을 담은 JSON 문자열 (예: {'move_command': 'go_home'})")
     
-    # Output Argument 1: ResultCode (Int32)
     output_arg_1 = ua.Argument()
     output_arg_1.Name = "ResultCode"
     output_arg_1.DataType = ua.NodeId(ua.ObjectIds.Int32)
     output_arg_1.ValueRank = -1
     output_arg_1.Description = ua.LocalizedText("처리 결과 코드 (0: 성공, 1: 오류)")
     
-    # Output Argument 2: ResultMessage (String)
     output_arg_2 = ua.Argument()
     output_arg_2.Name = "ResultMessage"
     output_arg_2.DataType = ua.NodeId(ua.ObjectIds.String)
@@ -1064,7 +1018,6 @@ async def main():
     synchrobots_objects = await methods.init_nodes()
     print(f"[{current_time}] [OPCUA] ✅ Variable 및 Object 노드 구조 생성 완료")
 
-    # --- 기존 메소드 등록 로직 유지 ---
     await synchrobots_objects["AMR"].add_method(
         ua.NodeId("write_amr_go_move", idx, node_id_type),
         "write_amr_go_move",
@@ -1125,19 +1078,15 @@ async def main():
         "write_send_arm_img", 
         methods.call_send_arm_img)
 
-    # 🚨 서버 실행부 보강
     try:
-        # 서버 시작 시도
         await server.start()
         print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [OPCUA] 🟢 서버 실행 성공! 포트 4840 오픈.")
         
-        # 실시간 감시를 위한 변수
         last_heartbeat = time.time()
         
         while True:
             await asyncio.sleep(1)
             
-            # Watchdog: 10초 이상 비동기 루프가 응답 없으면 강제 에러 발생
             if time.time() - last_heartbeat > 10:
                 raise Exception("서버 응답 지연 감지 (Watchdog Timeout)")
             
@@ -1153,8 +1102,8 @@ async def main():
         await server.stop()
 
 if __name__ == "__main__":
-    RESTART_DELAY_SECONDS = 3 # 3초 후 재시작
-    if os.name == 'nt': os.system('color') # CMD 색상 활성화
+    RESTART_DELAY_SECONDS = 3
+    if os.name == 'nt': os.system('color')
 
     while True:
         try:
@@ -1168,7 +1117,6 @@ if __name__ == "__main__":
         except (Exception, asyncio.CancelledError) as e:
             curr = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             print("\n" + "=" * 70)
-            # 빨간색 배경으로 에러 시각화
             print(f"\033[41m\033[37m[{curr}] [CRITICAL] 서버 다운/지연 감지! 에러: {e} \033[0m")
             print(f"\033[93m[{curr}] [SYSTEM] {RESTART_DELAY_SECONDS}초 대기 후 자동으로 서버를 재시작합니다...\033[0m")
             print("=" * 70 + "\n")
